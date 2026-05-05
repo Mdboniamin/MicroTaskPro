@@ -6,6 +6,8 @@ import { PlusCircle, ListTodo, Coins, Clock, Check, X, Loader2, Eye } from 'luci
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { Link } from 'react-router-dom';
+
 export default function BuyerHome() {
   const { dbUser } = useAuth();
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -103,13 +105,15 @@ export default function BuyerHome() {
           sub="Added by you" 
           icon={PlusCircle} 
           color="bg-purple-50 text-purple-600" 
+          link="/dashboard/buyer/my-tasks"
         />
         <StatCard 
-          label="Pending Task" 
+          label="Pending Workers" 
           value={stats?.totalRequiredWorkers || 0} 
-          sub="Sum of required workers" 
+          sub="Slots remaining in tasks" 
           icon={Clock} 
           color="bg-yellow-50 text-yellow-600" 
+          link="/dashboard/buyer/my-tasks"
         />
         <StatCard 
           label="Total payment paid" 
@@ -117,6 +121,7 @@ export default function BuyerHome() {
           sub="Total coins paid to workers" 
           icon={Coins} 
           color="bg-green-50 text-green-600" 
+          link="/dashboard/buyer/my-tasks"
         />
       </div>
 
@@ -221,9 +226,9 @@ export default function BuyerHome() {
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, color }: any) {
-  return (
-    <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+function StatCard({ label, value, sub, icon: Icon, color, link }: any) {
+  const content = (
+    <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm h-full hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-neutral-500">{label}</p>
@@ -236,4 +241,10 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
       <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-neutral-400">{sub}</p>
     </div>
   );
+
+  if (link) {
+    return <Link to={link}>{content}</Link>;
+  }
+
+  return content;
 }

@@ -4,6 +4,7 @@ import { db, handleFirestoreError, OperationType } from '../../../lib/firebase';
 import { useAuth } from '../../../context/AuthContext';
 import { CheckCircle, Clock, ListChecks, TrendingUp, User, Coins } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 
 interface Submission {
   id: string;
@@ -33,7 +34,7 @@ export default function WorkerHome() {
         const allSubs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
 
         const pending = allSubs.filter(s => s.status === 'pending').length;
-        const approved = allSubs.filter(s => s.status === 'approve');
+        const approved = allSubs.filter(s => s.status === 'approve' || s.status === 'approved');
         const earnings = approved.reduce((acc, curr) => acc + (curr.payable_amount || 0), 0);
 
         setStats({
@@ -74,53 +75,59 @@ export default function WorkerHome() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
-              <ListChecks size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest">Total Submissions</p>
-              <h3 className="text-2xl font-black text-neutral-900">{stats.totalSubmissions}</h3>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-50 text-yellow-600">
-              <Clock size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest">Pending</p>
-              <h3 className="text-2xl font-black text-neutral-900">{stats.pendingSubmissions}</h3>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          whileHover={{ y: -5 }}
-          className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-50 text-green-600">
-              <TrendingUp size={24} />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest">Total Earnings</p>
-              <div className="flex items-center gap-2">
-                <Coins size={20} className="text-green-600" />
-                <h3 className="text-2xl font-black text-neutral-900">{stats.totalEarnings}</h3>
+        <Link to="/dashboard/worker/submissions">
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:shadow-md h-full cursor-pointer"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
+                <ListChecks size={24} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest">Total Submissions</p>
+                <h3 className="text-2xl font-black text-neutral-900">{stats.totalSubmissions}</h3>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </Link>
+
+        <Link to="/dashboard/worker/submissions?status=pending">
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:shadow-md h-full cursor-pointer"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-50 text-yellow-600">
+                <Clock size={24} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest">Pending</p>
+                <h3 className="text-2xl font-black text-neutral-900">{stats.pendingSubmissions}</h3>
+              </div>
+            </div>
+          </motion.div>
+        </Link>
+
+        <Link to="/dashboard/worker/withdraw">
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition-all hover:shadow-md h-full cursor-pointer"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-50 text-green-600">
+                <TrendingUp size={24} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest">Total Earnings</p>
+                <div className="flex items-center gap-2">
+                  <Coins size={20} className="text-green-600" />
+                  <h3 className="text-2xl font-black text-neutral-900">{stats.totalEarnings}</h3>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </Link>
       </div>
 
       {/* Approved Submissions Table */}

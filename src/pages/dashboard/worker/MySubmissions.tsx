@@ -21,6 +21,7 @@ export default function MySubmissions() {
   const { dbUser } = useAuth();
   const [searchParams] = useSearchParams();
   const highlightedId = searchParams.get('subId');
+  const statusFilter = searchParams.get('status');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,7 +40,13 @@ export default function MySubmissions() {
           orderBy('current_date', 'desc')
         );
         const snap = await getDocs(q);
-        const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
+        let list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
+        
+        // Filter by status if provided in URL
+        if (statusFilter) {
+          list = list.filter(s => s.status.toLowerCase() === statusFilter.toLowerCase());
+        }
+
         setSubmissions(list);
         
         // Auto-page to highlighted item
@@ -56,7 +63,7 @@ export default function MySubmissions() {
       }
     }
     fetchSubmissions();
-  }, [dbUser, highlightedId]);
+  }, [dbUser, highlightedId, statusFilter]);
 
   const handleEdit = (sub: Submission) => {
     setEditingId(sub.id);

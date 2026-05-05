@@ -3,6 +3,7 @@ import { collection, getDocs, query, where, doc, runTransaction, increment } fro
 import { db } from '../../../lib/firebase';
 import { Users, ListTodo, Wallet, Coins, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function AdminHome() {
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -40,18 +41,18 @@ export default function AdminHome() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Workers" value={stats?.totalWorkers || 0} sub="Active earners" icon={Users} color="bg-blue-50 text-blue-600" />
-        <StatCard label="Total Buyers" value={stats?.totalBuyers || 0} sub="Job providers" icon={ListTodo} color="bg-purple-50 text-purple-600" />
-        <StatCard label="Available Coins" value={stats?.totalCoins || 0} sub="Platform economy" icon={Coins} color="bg-orange-50 text-orange-600" />
-        <StatCard label="Total Payments" value={`$${stats?.totalPayments || 0}`} sub="Total revenue" icon={Wallet} color="bg-green-50 text-green-600" />
+        <StatCard label="Total Workers" value={stats?.totalWorkers || 0} sub="Active earners" icon={Users} color="bg-blue-50 text-blue-600" link="/dashboard/admin/manage-users" />
+        <StatCard label="Total Buyers" value={stats?.totalBuyers || 0} sub="Job providers" icon={ListTodo} color="bg-purple-50 text-purple-600" link="/dashboard/admin/manage-users" />
+        <StatCard label="Available Coins" value={stats?.totalCoins || 0} sub="Platform economy" icon={Coins} color="bg-orange-50 text-orange-600" link="/dashboard/admin/manage-users" />
+        <StatCard label="Total Payments" value={`$${stats?.totalPayments || 0}`} sub="Total revenue" icon={Wallet} color="bg-green-50 text-green-600" link="/dashboard/admin/manage-withdrawals" />
       </div>
     </div>
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, color }: any) {
-  return (
-    <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+function StatCard({ label, value, sub, icon: Icon, color, link }: any) {
+  const content = (
+    <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm h-full hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-neutral-500">{label}</p>
@@ -64,4 +65,10 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
       <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-neutral-400">{sub}</p>
     </div>
   );
+
+  if (link) {
+    return <Link to={link}>{content}</Link>;
+  }
+
+  return content;
 }
