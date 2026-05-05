@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information and balance",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "photo": { "type": "string" },
+        "role": { "type": "string", "enum": ["worker", "buyer", "admin"] },
+        "coins": { "type": "number" },
+        "githubUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "role", "coins"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Task created by buyers for workers to complete",
+      "type": "object",
+      "properties": {
+        "task_title": { "type": "string" },
+        "task_detail": { "type": "string" },
+        "required_workers": { "type": "number" },
+        "payable_amount": { "type": "number" },
+        "completion_date": { "type": "string", "format": "date" },
+        "submission_info": { "type": "string" },
+        "task_image_url": { "type": "string" },
+        "buyer_email": { "type": "string" },
+        "buyer_name": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["task_title", "required_workers", "payable_amount", "buyer_email"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Task submission by workers",
+      "type": "object",
+      "properties": {
+        "task_id": { "type": "string" },
+        "task_title": { "type": "string" },
+        "payable_amount": { "type": "number" },
+        "worker_email": { "type": "string" },
+        "worker_name": { "type": "string" },
+        "buyer_email": { "type": "string" },
+        "buyer_name": { "type": "string" },
+        "submission_details": { "type": "string" },
+        "current_date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] }
+      },
+      "required": ["task_id", "worker_email", "status"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal",
+      "description": "Coin withdrawal request by workers",
+      "type": "object",
+      "properties": {
+        "worker_email": { "type": "string" },
+        "worker_name": { "type": "string" },
+        "withdrawal_coin": { "type": "number" },
+        "withdrawal_amount": { "type": "number" },
+        "payment_system": { "type": "string" },
+        "account_number": { "type": "string" },
+        "withdraw_date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "approved"] }
+      },
+      "required": ["worker_email", "withdrawal_coin", "status"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Payment record for coins purchased by buyers",
+      "type": "object",
+      "properties": {
+        "buyer_email": { "type": "string" },
+        "coin_amount": { "type": "number" },
+        "amount_usd": { "type": "number" },
+        "transaction_id": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["buyer_email", "transaction_id"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notifications for users",
+      "type": "object",
+      "properties": {
+        "message": { "type": "string" },
+        "toEmail": { "type": "string" },
+        "actionRoute": { "type": "string" },
+        "time": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" }
+      },
+      "required": ["message", "toEmail", "isRead"]
+    }
+  },
+  "firestore": {
+    "users": { "schema": "User", "description": "Users collection" },
+    "tasks": { "schema": "Task", "description": "Tasks collection" },
+    "submissions": { "schema": "Submission", "description": "Submissions collection" },
+    "withdrawals": { "schema": "Withdrawal", "description": "Withdrawals collection" },
+    "payments": { "schema": "Payment", "description": "Payments collection" },
+    "notifications": { "schema": "Notification", "description": "Notifications collection" }
+  }
+}

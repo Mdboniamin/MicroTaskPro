@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // Primitives & Helpers
+    // -------------------------------------------------------------------------
+    function isSignedIn() { return request.auth != null; }
+    function authId() { return request.auth.uid; }
+    function authEmail() { return request.auth.token.email; }
+    function isEmailVerified() { return request.auth.token.email_verified == true; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    // Admin lookup helper - strictly checks verified email against users collection or developer email
+    function isAdmin() {
+      return isSignedIn() && (
+             (exists(/databases/$(database)/documents/users/$(authId())) && get(/databases/$(database)/documents/users/$(authId())).data.role == 'admin') ||
+             authEmail() == 'aminboni070@gmail.com'
+      );
+    }
+
+    function isValidSubmission(data) {
+      return data.keys().hasAll(['task_id', 'worker_email', 'status', 'payable_amount', 'buyer_email', 'task_title', 'worker_name']) &&
+             data.worker_email is string &&
+             data.status in ['pending', 'approve', 'rejected'];
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['task_title', 'required_workers', 'payable_amount', 'buyer_email', 'status']) &&
+             data.task_title is string &&
+             data.required_workers is number &&
+             data.payable_amount is number &&
+             data.status is string;
+    }
+
+    // -------------------------------------------------------------------------
+    // Match Blocks
+    // -------------------------------------------------------------------------
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && (isAdmin() || resource.data.role == 'worker' || resource.data.email == authEmail()); 
+      allow create: if isSignedIn() && userId == authId();
+      allow update: if isSignedIn() && (
+        (userId == authId() && incoming().diff(existing()).affectedKeys().hasOnly(['photo', 'name', 'coins', 'githubUrl'])) ||
+        isAdmin()
+      );
+    }
+    
+    match /tasks/{taskId} {
+      allow list: if isSignedIn() && (isAdmin() || resource.data.buyer_email == authEmail() || resource.data.status == 'pending');
+      allow get: if isSignedIn();
+      allow create: if isSignedIn() && isValidTask(incoming()) && incoming().buyer_email == authEmail();
+      allow update: if isSignedIn() && (
+        (existing().buyer_email == authEmail() && incoming().diff(existing()).affectedKeys().hasOnly(['required_workers'])) ||
+        (existing().buyer_email == authEmail() && incoming().diff(existing()).affectedKeys().hasOnly(['task_title', 'task_detail', 'task_image_url'])) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin() || (isSignedIn() && existing().buyer_email == authEmail());
+    }
+
+    match /submissions/{subId} {
+      allow list: if isSignedIn() && (
+        resource.data.worker_email == authEmail() || 
+        resource.data.buyer_email == authEmail()
+      );
+      allow get: if isSignedIn() && (
+        existing().worker_email == authEmail() || 
+        existing().buyer_email == authEmail() || 
+        isAdmin()
+      );
+      allow create: if isSignedIn() && isValidSubmission(incoming()) && incoming().worker_email == authEmail();
+      allow update: if isSignedIn() && (
+        (existing().buyer_email == authEmail() && incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+        (existing().worker_email == authEmail() && existing().status == 'pending' && incoming().diff(existing()).affectedKeys().hasOnly(['submission_details'])) ||
+        isAdmin()
+      );
+      allow delete: if isSignedIn() && existing().worker_email == authEmail() && existing().status == 'pending';
+    }
+
+    match /withdrawals/{withdrawId} {
+      allow list: if isSignedIn() && (isAdmin() || resource.data.worker_email == authEmail());
+      allow get: if isSignedIn() && (existing().worker_email == authEmail() || isAdmin());
+      allow create: if isSignedIn() && incoming().worker_email == authEmail();
+      allow update: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow list: if isSignedIn() && (isAdmin() || resource.data.email == authEmail());
+      allow get: if isSignedIn() && (existing().email == authEmail() || isAdmin());
+      allow create: if isSignedIn() && incoming().email == authEmail();
+    }
+
+    match /notifications/{notifId} {
+      allow list: if isSignedIn() && resource.data.toEmail == authEmail();
+      allow get: if isSignedIn() && existing().toEmail == authEmail();
+      allow create: if isSignedIn(); 
+      allow update: if isSignedIn() && existing().toEmail == authEmail() && incoming().diff(existing()).affectedKeys().hasOnly(['read', 'isRead']);
+    }
+
+    match /reports/{reportId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() || (isSignedIn() && existing().reporter_email == authEmail());
+      allow create: if isSignedIn();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Safety Net (Move to bottom)
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
