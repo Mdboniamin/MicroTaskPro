@@ -4,14 +4,23 @@ import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 
 import { auth, db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firestoreErrorHandler';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
+  const { user, dbUser } = useAuth();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && dbUser) {
+      const role = dbUser.email === 'aminboni070@gmail.com' ? 'admin' : dbUser.role;
+      navigate(`/dashboard/${role}`);
+    }
+  }, [user, dbUser, navigate]);
 
   const onSubmit = async (data: any) => {
     setLoading(true);

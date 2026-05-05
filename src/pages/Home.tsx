@@ -6,6 +6,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
@@ -31,6 +32,7 @@ const dummyWorkers = [
 ];
 
 export default function Home() {
+  const { user, dbUser } = useAuth();
   const [topWorkers, setTopWorkers] = useState<any[]>(dummyWorkers);
 
   useEffect(() => {
@@ -48,6 +50,55 @@ export default function Home() {
     };
     fetchTopWorkers();
   }, []);
+
+  const getDashboardLink = () => {
+    if (!user) return '/register';
+    return `/dashboard/${dbUser?.role || ''}`;
+  };
+
+  const getDashboardLabel = () => {
+    if (!user) return 'Get Your Free Account';
+    return 'Go to Dashboard';
+  };
+
+  const getWorkerLink = () => {
+    if (!user) return '/register';
+    if (dbUser?.role === 'worker') return '/dashboard/worker/tasks';
+    return `/dashboard/${dbUser?.role || ''}`;
+  };
+
+  const getWorkerLabel = () => {
+    if (!user) return 'Get Started as Worker';
+    if (dbUser?.role === 'worker') return 'Browse New Tasks';
+    return 'Go to Dashboard';
+  };
+
+  const getBuyerLink = () => {
+    if (!user) return '/register';
+    if (dbUser?.role === 'buyer') return '/dashboard/buyer/post-task';
+    return `/dashboard/${dbUser?.role || ''}`;
+  };
+
+  const getBuyerLabel = () => {
+    if (!user) return 'Join as a Buyer';
+    if (dbUser?.role === 'buyer') return 'Post a New Task';
+    return 'Go to Dashboard';
+  };
+
+  const getTasksLink = () => {
+    if (!user) return '/login';
+    if (dbUser?.role === 'worker') return '/dashboard/worker/tasks';
+    if (dbUser?.role === 'buyer') return '/dashboard/buyer/my-tasks';
+    return `/dashboard/${dbUser?.role || ''}`;
+  };
+
+  const scrollToHowItWorks = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const element = document.getElementById('how-it-works');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="overflow-x-hidden">
@@ -82,10 +133,10 @@ export default function Home() {
                   Complete small tasks, earn coins, and withdraw real money. Join 10k+ workers growing daily.
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                  <Link to="/register" className="rounded-full bg-orange-600 px-10 py-4 text-lg font-bold transition hover:bg-orange-700 active:scale-95 shadow-lg shadow-orange-600/30">
-                    Get Started as Worker
+                  <Link to={getWorkerLink()} className="rounded-full bg-orange-600 px-10 py-4 text-lg font-bold transition hover:bg-orange-700 active:scale-95 shadow-lg shadow-orange-600/30">
+                    {getWorkerLabel()}
                   </Link>
-                  <Link to="/login" className="rounded-full bg-white/10 px-10 py-4 text-lg font-bold backdrop-blur-md transition hover:bg-white/20">
+                  <Link to={getTasksLink()} className="rounded-full bg-white/10 px-10 py-4 text-lg font-bold backdrop-blur-md transition hover:bg-white/20">
                     View Available Tasks
                   </Link>
                 </div>
@@ -115,12 +166,12 @@ export default function Home() {
                   Delegate micro-tasks to our global workforce. High quality results, delivered in minutes.
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                  <Link to="/register" className="rounded-full bg-orange-600 px-10 py-4 text-lg font-bold transition hover:bg-orange-700 active:scale-95 shadow-lg shadow-orange-600/30">
-                    Join as a Buyer
+                  <Link to={getBuyerLink()} className="rounded-full bg-orange-600 px-10 py-4 text-lg font-bold transition hover:bg-orange-700 active:scale-95 shadow-lg shadow-orange-600/30">
+                    {getBuyerLabel()}
                   </Link>
-                  <Link to="/how-it-works" className="rounded-full bg-white/10 px-10 py-4 text-lg font-bold backdrop-blur-md transition hover:bg-white/20">
+                  <a href="#how-it-works" onClick={scrollToHowItWorks} className="rounded-full bg-white/10 px-10 py-4 text-lg font-bold backdrop-blur-md transition hover:bg-white/20">
                     Learn How it Works
-                  </Link>
+                  </a>
                 </div>
               </motion.div>
             </div>
@@ -148,8 +199,8 @@ export default function Home() {
                   Transparency, security, and fairness. Our platform connects thousands of people everyday.
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                  <Link to="/register" className="rounded-full bg-orange-600 px-10 py-4 text-lg font-bold transition hover:bg-orange-700 active:scale-95 shadow-lg shadow-orange-600/30">
-                    Get Your Free Account
+                  <Link to={getDashboardLink()} className="rounded-full bg-orange-600 px-10 py-4 text-lg font-bold transition hover:bg-orange-700 active:scale-95 shadow-lg shadow-orange-600/30">
+                    {getDashboardLabel()}
                   </Link>
                   <Link to="/about" className="rounded-full bg-white/10 px-10 py-4 text-lg font-bold backdrop-blur-md transition hover:bg-white/20">
                     About the Platform
@@ -258,49 +309,95 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Extra Section 1: How it Works */}
-      <section className="bg-white py-24">
+      {/* 4. How it Works Section */}
+      <section id="how-it-works" className="bg-white py-24 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-16 md:flex-row">
-            <div className="flex-1">
-              <h2 className="mb-8 text-4xl font-black text-neutral-900 md:text-5xl">How MicroTask Pro Works</h2>
-              <div className="space-y-10">
-                <div className="flex gap-6 group">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-600 font-black text-xl text-white transition-transform group-hover:scale-110 shadow-lg shadow-orange-600/20">1</div>
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-4xl font-black tracking-tight text-neutral-900 sm:text-5xl">How it <span className="text-orange-600">Works</span></h2>
+            <p className="mx-auto max-w-2xl text-lg font-bold text-neutral-500">
+              Simple, transparent, and secure steps for both workers and buyers to collaborate effectively.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+            {/* For Workers */}
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="rounded-[3rem] bg-orange-50 p-8 sm:p-12 relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150 duration-700" />
+              <div className="mb-8 flex items-center gap-4 relative z-10">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-600 text-xl font-bold text-white shadow-lg shadow-orange-600/20">W</div>
+                <h3 className="text-2xl font-black text-neutral-900">For Workers</h3>
+              </div>
+              <div className="space-y-10 relative z-10">
+                <div className="flex gap-6">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white font-black text-orange-600 shadow-sm border border-neutral-100">1</div>
                   <div>
-                    <h4 className="mb-2 text-xl font-black text-neutral-900">Sign Up & Choose Role</h4>
-                    <p className="text-lg text-neutral-600">Create an account as a worker to earn or a buyer to post tasks. Switch anytime.</p>
+                    <h4 className="mb-1 font-black text-neutral-900">Choose a Task</h4>
+                    <p className="text-neutral-600 font-medium">Browse available micro-tasks that match your interests. We have thousands of social and technical tasks.</p>
                   </div>
                 </div>
-                <div className="flex gap-6 group">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-600 font-black text-xl text-white transition-transform group-hover:scale-110 shadow-lg shadow-orange-600/20">2</div>
+                <div className="flex gap-6">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white font-black text-orange-600 shadow-sm border border-neutral-100">2</div>
                   <div>
-                    <h4 className="mb-2 text-xl font-black text-neutral-900">Complete or Post Tasks</h4>
-                    <p className="text-lg text-neutral-600">Workers pick preferred tasks; Buyers post with clear instructions and budget.</p>
+                    <h4 className="mb-1 font-black text-neutral-900">Submit Proof</h4>
+                    <p className="text-neutral-600 font-medium">Follow simple instructions, complete the task, and upload a screenshot or text as evidence.</p>
                   </div>
                 </div>
-                <div className="flex gap-6 group">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-600 font-black text-xl text-white transition-transform group-hover:scale-110 shadow-lg shadow-orange-600/20">3</div>
+                <div className="flex gap-6">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white font-black text-orange-600 shadow-sm border border-neutral-100">3</div>
                   <div>
-                    <h4 className="mb-2 text-xl font-black text-neutral-900">Earn & Withdraw</h4>
-                    <p className="text-lg text-neutral-600">Approval triggers instant coin transfers. Withdraw earnings to your bank easily.</p>
+                    <h4 className="mb-1 font-black text-neutral-900">Get Paid</h4>
+                    <p className="text-neutral-600 font-medium">Once approved by the buyer, coins are credited to your balance instantly. Withdraw to real money easily!</p>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="flex-1 relative">
-              <div className="absolute inset-0 bg-orange-600 rounded-[3rem] rotate-3 -z-10 opacity-10" />
-              <img 
-                src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&auto=format&fit=crop&q=60" 
-                alt="How it works" 
-                className="rounded-[3.5rem] shadow-2xl relative z-10"
-              />
-            </div>
+            </motion.div>
+
+            {/* For Buyers */}
+            <motion.div 
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="rounded-[3rem] bg-neutral-900 p-8 sm:p-12 text-white relative overflow-hidden group"
+            >
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16 transition-transform group-hover:scale-150 duration-700" />
+              <div className="mb-8 flex items-center gap-4 relative z-10">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl font-bold text-neutral-900">B</div>
+                <h3 className="text-2xl font-black">For Buyers</h3>
+              </div>
+              <div className="space-y-10 relative z-10">
+                <div className="flex gap-6">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-black text-white shadow-sm border border-white/10">1</div>
+                  <div>
+                    <h4 className="mb-1 font-black">Post a Task</h4>
+                    <p className="text-neutral-400 font-medium">Create a campaign with set budget and specific instructions. Reach thousands of workers globally.</p>
+                  </div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-black text-white shadow-sm border border-white/10">2</div>
+                  <div>
+                    <h4 className="mb-1 font-black">Review Work</h4>
+                    <p className="text-neutral-400 font-medium">Review submissions in real-time. Approve quality work or reject if it doesn't meet requirements.</p>
+                  </div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-black text-white shadow-sm border border-white/10">3</div>
+                  <div>
+                    <h4 className="mb-1 font-black">Get Results</h4>
+                    <p className="text-neutral-400 font-medium">Get the results you need quickly from a global community. Scale your business, SEO, or social presence.</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* 5. Extra Section 2: Platform Benefits */}
+      {/* 5. Ecosystem Benefits Section */}
       <section className="bg-neutral-900 py-32 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 -mr-32 -mt-32 h-96 w-96 rounded-full bg-orange-600/10 blur-[100px]" />
         <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-96 w-96 rounded-full bg-orange-600/5 blur-[100px]" />
@@ -363,7 +460,7 @@ export default function Home() {
             <div className="relative">
               <div className="absolute -inset-4 bg-orange-100 rounded-[3rem] blur-2xl opacity-50 -z-10" />
               <img 
-                src="https://images.unsplash.com/photo-1522071823991-b9671f9d7f1f?w=800&auto=format&fit=crop&q=60" 
+                src="https://images.unsplash.com/photo-15222071823991-b9671f9d7f1f?w=800&auto=format&fit=crop&q=60" 
                 alt="Community Focus" 
                 className="rounded-[3rem] shadow-2xl"
               />
@@ -392,17 +489,19 @@ export default function Home() {
             </p>
             <div className="grid grid-cols-1 sm:flex flex-wrap justify-center gap-6">
               <Link 
-                to="/register" 
+                to={getDashboardLink()} 
                 className="rounded-full bg-white px-12 py-5 text-xl font-black text-orange-600 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-black/10"
               >
-                Create Free Account
+                {getDashboardLabel()}
               </Link>
-              <Link 
-                to="/login" 
-                className="rounded-full bg-black/10 px-12 py-5 text-xl font-black text-white backdrop-blur-md transition-all hover:bg-black/20 hover:scale-105 active:scale-95 border border-white/20"
-              >
-                Sign In
-              </Link>
+              {!user && (
+                <Link 
+                  to="/login" 
+                  className="rounded-full bg-black/10 px-12 py-5 text-xl font-black text-white backdrop-blur-md transition-all hover:bg-black/20 hover:scale-105 active:scale-95 border border-white/20"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </motion.div>
         </div>

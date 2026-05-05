@@ -7,13 +7,22 @@ import { uploadImage } from '../lib/imgbb';
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Coins, User, Mail, Lock, Camera, Loader2, X, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
+  const { user, dbUser } = useAuth();
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && dbUser) {
+      const role = dbUser.email === 'aminboni070@gmail.com' ? 'admin' : dbUser.role;
+      navigate(`/dashboard/${role}`);
+    }
+  }, [user, dbUser, navigate]);
 
   const watchedImage = watch('image');
 
